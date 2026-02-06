@@ -132,7 +132,7 @@ commands:
 
   # Utilities
   - name: guide
-    visibility: [full]
+    visibility: [full, quick, key]
     description: 'Show comprehensive usage guide for this agent'
   - name: exit
     visibility: [full, quick, key]
@@ -224,7 +224,11 @@ autoClaude:
 - `*publish-squad {name}` - Publish to aios-squads
 - `*sync-squad-synkra {name}` - Sync to Synkra API
 
-Type `*help` to see all commands, or `*guide` for detailed usage.
+**Utilities:**
+
+- `*guide` - Show comprehensive usage guide
+- `*help` - Show all available commands
+- `*exit` - Exit squad-creator mode
 
 ---
 

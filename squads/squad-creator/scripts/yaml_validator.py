@@ -5,9 +5,9 @@ Purpose: Validate YAML structure in agent/task/workflow files
 Operations: 25+ deterministic checks
 
 Usage:
-    python scripts/yaml_validator.py squads/copy/agents/gary-halbert.md --type agent
-    python scripts/yaml_validator.py squads/copy/tasks/create-sales-page.md --type task
-    python scripts/yaml_validator.py squads/copy/ --type squad  # Validate all files
+    python scripts/yaml_validator.py squads/{squad-name}/agents/{agent-name}.md --type agent
+    python scripts/yaml_validator.py squads/{squad-name}/tasks/{task-name}.md --type task
+    python scripts/yaml_validator.py squads/{squad-name}/ --type squad  # Validate all files
 """
 
 import os

@@ -82,13 +82,13 @@ Result: Structured report with deterministic + semantic
 
 ```python
 # Input
-squad_path: str  # "squads/copy/"
+squad_path: str  # "squads/{squad-name}/"
 
 # Output
 {
   "exists": true,
   "components": {
-    "agents": {"count": 22, "files": ["gary-halbert.md", ...]},
+    "agents": {"count": 22, "files": ["{agent-name}.md", ...]},
     "tasks": {"count": 58, "files": [...]},
     "workflows": {"count": 3, "files": [...]},
     "templates": {"count": 10, "files": [...]},
@@ -114,7 +114,7 @@ squad_path: str  # "squads/copy/"
 
 ```python
 # Input
-file_path: str  # "squads/copy/agents/gary-halbert.md"
+file_path: str  # "squads/{squad-name}/agents/{agent-name}.md"
 expected_keys: list  # ["agent", "persona", "commands", "voice_dna"]
 
 # Output
@@ -144,7 +144,7 @@ expected_keys: list  # ["agent", "persona", "commands", "voice_dna"]
 
 ```python
 # Input
-agent_file: str  # "squads/copy/agents/gary-halbert.md"
+agent_file: str  # "squads/{squad-name}/agents/{agent-name}.md"
 
 # Output
 {
@@ -184,7 +184,7 @@ squad_path: str
   "config_name_matches_folder": true,
   "slash_prefix_valid": true,  # camelCase
   "file_naming": {
-    "agents": {"valid": ["gary-halbert.md"], "invalid": []},
+    "agents": {"valid": ["{agent-name}.md"], "invalid": []},
     "tasks": {"valid": [...], "invalid": ["Create_Sales_Page.md"]}  # Wrong case
   },
   "violations": [
@@ -209,7 +209,7 @@ thresholds: dict  # {"min_lines": 300, "min_examples": 3, ...}
 
 # Output
 {
-  "file": "agents/gary-halbert.md",
+  "file": "agents/{agent-name}.md",
   "metrics": {
     "lines": 450,
     "vocabulary_always_use": 8,

@@ -12,9 +12,9 @@ Thresholds:
 - objection_algorithms: min 3 items
 
 Usage:
-    python scripts/quality_gate.py squads/copy/
-    python scripts/quality_gate.py squads/copy/ --output json
-    python scripts/quality_gate.py squads/copy/ --strict
+    python scripts/quality_gate.py squads/{squad-name}/
+    python scripts/quality_gate.py squads/{squad-name}/ --output json
+    python scripts/quality_gate.py squads/{squad-name}/ --strict
 """
 
 import argparse

@@ -13,9 +13,9 @@ Scoring Dimensions (weights sum to 1.0):
 - Naming & Standards: 0.15
 
 Usage:
-    python scripts/scoring.py squads/copy/
-    python scripts/scoring.py squads/copy/ --output json
-    python scripts/scoring.py squads/copy/ --detailed
+    python scripts/scoring.py squads/{squad-name}/
+    python scripts/scoring.py squads/{squad-name}/ --output json
+    python scripts/scoring.py squads/{squad-name}/ --detailed
 """
 
 import argparse

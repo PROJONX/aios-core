@@ -1,10 +1,17 @@
 # Task: QA After Creation
 
 **Task ID:** qa-after-creation
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Purpose:** Automatic quality assurance check after squad/component creation
 **Orchestrator:** @squad-architect
 **Mode:** Automatic (triggered by creation tasks)
+
+**Process Specialist:** @pedro-valerio
+**Specialist Guidance:**
+- Use Process Absolutism principles for validation
+- Define VETO conditions that BLOCK, not just warn
+- For workflow/process validation, invoke: `@pedro-valerio *audit`
+- For designing quality gates, invoke: `@pedro-valerio *design-heuristic`
 
 **Core Philosophy:**
 ```

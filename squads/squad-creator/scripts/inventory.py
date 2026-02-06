@@ -5,9 +5,9 @@ Purpose: Scan squad directory and return structured inventory
 Operations: 30+ deterministic checks
 
 Usage:
-    python scripts/inventory.py squads/copy/
-    python scripts/inventory.py squads/copy/ --output json
-    python scripts/inventory.py squads/copy/ --output yaml
+    python scripts/inventory.py squads/{squad-name}/
+    python scripts/inventory.py squads/{squad-name}/ --output json
+    python scripts/inventory.py squads/{squad-name}/ --output yaml
 """
 
 import os
@@ -243,7 +243,7 @@ def main():
     parser.add_argument(
         "squad_path",
         type=Path,
-        help="Path to squad directory (e.g., squads/copy/)"
+        help="Path to squad directory (e.g., squads/{squad-name}/)"
     )
     parser.add_argument(
         "--output", "-o",

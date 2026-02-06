@@ -101,7 +101,7 @@ show_help() {
 Usage: ./validate-squad.sh <squad-name> [options]
 
 Arguments:
-  squad-name    Name of squad to validate (e.g., "copy", "mmos")
+  squad-name    Name of squad to validate (e.g., "my-squad", "new-squad")
 
 Options:
   --verbose     Show all checks and Claude analysis details
@@ -111,10 +111,10 @@ Options:
   --help        Show this help message
 
 Examples:
-  ./validate-squad.sh books              # Full validation with Opus
-  ./validate-squad.sh copy --verbose     # Verbose output
-  ./validate-squad.sh mmos --quick       # Deterministic only (no Claude)
-  ./validate-squad.sh books --fast       # Quick validation with Haiku
+  ./validate-squad.sh {squad-name}              # Full validation with Opus
+  ./validate-squad.sh {squad-name} --verbose    # Verbose output
+  ./validate-squad.sh {squad-name} --quick      # Deterministic only (no Claude)
+  ./validate-squad.sh {squad-name} --fast       # Quick validation with Haiku
 
 Exit Codes:
   0  PASS     Score >= 7.0, no blocking issues
@@ -527,8 +527,8 @@ check_production() {
       log_warn "outputs/ exists but is empty"
     fi
   else
-    # Check global outputs directory for this squad
-    local global_outputs="/Users/oalanicolas/Code/mmos/outputs"
+    # Check global outputs directory for this squad (uses env var or relative path)
+    local global_outputs="${OUTPUTS_DIR:-./outputs}"
     if [ -d "$global_outputs" ]; then
       local squad_outputs=$(find "$global_outputs" -type d -name "*$SQUAD_NAME*" 2>/dev/null | head -1)
       if [ -n "$squad_outputs" ] && [ -d "$squad_outputs" ]; then
