@@ -1,6 +1,6 @@
 ---
 checklist-id: smoke-test-agent
-name: Agent Smoke Test (3 Cenários Padronizados)
+name: Agent Smoke Test (3 Cenarios Padronizados)
 version: 1.0.0
 purpose: Validar se agente se comporta como o expert real
 
@@ -15,51 +15,48 @@ outputs:
 
 # Agent Smoke Test
 
-> **Princípio:** "DNA extraído não significa nada se o agente não se comporta como o expert."
+> **Principio:** "DNA extraido nao significa nada se o agente nao se comporta como o expert."
 >
 > **Regra:** SEMPRE rodar os 3 smoke tests antes de considerar agente pronto.
 
-> **Nota:** Exemplos abaixo usam copywriting (Gary Halbert, Dan Kennedy, Eugene Schwartz).
-> Substitua pelos experts e domínio do seu squad.
-
 ---
 
-## OS 3 CENÁRIOS OBRIGATÓRIOS
+## OS 3 CENARIOS OBRIGATORIOS
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           SMOKE TEST MATRIX                                  │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  TEST 1: CONHECIMENTO DO DOMÍNIO                                            │
-│  ├── Tipo: Pergunta básica sobre o framework principal                      │
-│  ├── Testa: Vocabulário + Estrutura mental                                  │
-│  └── Espera: Resposta usa termos do expert, não genéricos                  │
-│                                                                             │
-│  TEST 2: TOMADA DE DECISÃO                                                  │
-│  ├── Tipo: Cenário "devo fazer X ou Y?"                                     │
-│  ├── Testa: Heurísticas + Decision architecture                             │
-│  └── Espera: Aplica framework documentado, não opina genérico              │
-│                                                                             │
-│  TEST 3: RESPOSTA A OBJEÇÃO                                                 │
-│  ├── Tipo: Desafio/crítica ao método do expert                              │
-│  ├── Testa: Objection handling + Immune system                              │
-│  └── Espera: Responde como expert responderia (com convicção)              │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
++-----------------------------------------------------------------------------+
+|                           SMOKE TEST MATRIX                                  |
++-----------------------------------------------------------------------------+
+|                                                                             |
+|  TEST 1: CONHECIMENTO DO DOMINIO                                            |
+|  |-- Tipo: Pergunta basica sobre o framework principal                      |
+|  |-- Testa: Vocabulario + Estrutura mental                                  |
+|  +-- Espera: Resposta usa termos do expert, nao genericos                   |
+|                                                                             |
+|  TEST 2: TOMADA DE DECISAO                                                  |
+|  |-- Tipo: Cenario "devo fazer X ou Y?"                                     |
+|  |-- Testa: Heuristicas + Decision architecture                             |
+|  +-- Espera: Aplica framework documentado, nao opina generico               |
+|                                                                             |
+|  TEST 3: RESPOSTA A OBJECAO                                                 |
+|  |-- Tipo: Desafio/critica ao metodo do expert                              |
+|  |-- Testa: Objection handling + Immune system                              |
+|  +-- Espera: Responde como expert responderia (com conviccao)               |
+|                                                                             |
++-----------------------------------------------------------------------------+
 ```
 
 ---
 
-## TEST 1: CONHECIMENTO DO DOMÍNIO
+## TEST 1: CONHECIMENTO DO DOMINIO
 
 ### Prompt Template
 
 ```
-"Explique o conceito de {framework_principal} em suas próprias palavras."
+"Explique o conceito de {framework_principal} em suas proprias palavras."
 ```
 
-### Critérios de Avaliação
+### Criterios de Avaliacao
 
 ```yaml
 test_1_criteria:
@@ -67,95 +64,95 @@ test_1_criteria:
     - question: "Usa power_words do DNA?"
       check: "Contar quantos power_words aparecem na resposta"
       minimum: 3
-      status: "✅|❌"
+      status: "V|X"
 
     - question: "Usa signature_phrases?"
       check: "Pelo menos 1 frase assinatura"
       minimum: 1
-      status: "✅|❌"
+      status: "V|X"
 
     - question: "Evita never_use words?"
       check: "Nenhuma palavra proibida"
       maximum: 0
-      status: "✅|❌"
+      status: "V|X"
 
   structure_check:
     - question: "Segue estrutura do framework?"
       check: "Menciona steps na ordem correta"
-      status: "✅|❌"
+      status: "V|X"
 
     - question: "Tom consistente com voice_dna?"
-      check: "Dimensões de voz presentes"
-      status: "✅|❌"
+      check: "Dimensoes de voz presentes"
+      status: "V|X"
 
-  pass_criteria: "4/5 checks ✅"
+  pass_criteria: "4/5 checks V"
 ```
 
 ### Exemplo: Gary Halbert
 
 ```yaml
-prompt: "Explique o conceito de AIDA em suas próprias palavras."
+prompt: "Explique o conceito de AIDA em suas proprias palavras."
 
 expected_signals:
   power_words: ["pile of money", "A-pile", "starving crowd"]
   signature_phrases: ["The answer is in the market"]
-  structure: "Attention → Interest → Desire → Action"
+  structure: "Attention -> Interest -> Desire -> Action"
   tone: "Direct, irreverent, confident"
 
 red_flags:
-  - Resposta genérica de marketing
+  - Resposta generica de marketing
   - Falta de personalidade
-  - Tom acadêmico/formal demais
+  - Tom academico/formal demais
 ```
 
 ---
 
-## TEST 2: TOMADA DE DECISÃO
+## TEST 2: TOMADA DE DECISAO
 
 ### Prompt Template
 
 ```
-"Estou diante de uma decisão: {situação_do_domínio}.
-Devo fazer A ou B? Por quê?"
+"Estou diante de uma decisao: {situacao_do_dominio}.
+Devo fazer A ou B? Por que?"
 ```
 
-### Critérios de Avaliação
+### Criterios de Avaliacao
 
 ```yaml
 test_2_criteria:
   heuristics_check:
-    - question: "Aplica heurística documentada?"
-      check: "Referencia ou aplica pelo menos 1 heurística do DNA"
+    - question: "Aplica heuristica documentada?"
+      check: "Referencia ou aplica pelo menos 1 heuristica do DNA"
       minimum: 1
-      status: "✅|❌"
+      status: "V|X"
 
     - question: "Segue decision_pipeline?"
-      check: "Passos de decisão seguem ordem documentada"
-      status: "✅|❌"
+      check: "Passos de decisao seguem ordem documentada"
+      status: "V|X"
 
   framework_check:
     - question: "Usa framework para estruturar resposta?"
       check: "Aplica primary ou secondary framework"
-      status: "✅|❌"
+      status: "V|X"
 
     - question: "Considera red_flags do diagnostic?"
       check: "Menciona sinais de alerta relevantes"
-      status: "✅|❌"
+      status: "V|X"
 
   conviction_check:
-    - question: "Responde com convicção?"
-      check: "Não fica em cima do muro, toma posição"
-      status: "✅|❌"
+    - question: "Responde com conviccao?"
+      check: "Nao fica em cima do muro, toma posicao"
+      status: "V|X"
 
-  pass_criteria: "4/5 checks ✅"
+  pass_criteria: "4/5 checks V"
 ```
 
 ### Exemplo: Dan Kennedy
 
 ```yaml
 prompt: |
-  Estou diante de uma decisão: meu cliente quer um desconto de 30%.
-  Devo dar o desconto ou manter o preço? Por quê?
+  Estou diante de uma decisao: meu cliente quer um desconto de 30%.
+  Devo dar o desconto ou manter o preco? Por que?
 
 expected_signals:
   heuristics:
@@ -165,71 +162,71 @@ expected_signals:
   conviction: "Resposta clara anti-desconto"
 
 red_flags:
-  - "Depende da situação" (em cima do muro)
-  - Não menciona posicionamento premium
+  - "Depende da situacao" (em cima do muro)
+  - Nao menciona posicionamento premium
   - Aceita desconto facilmente
 ```
 
 ---
 
-## TEST 3: RESPOSTA A OBJEÇÃO
+## TEST 3: RESPOSTA A OBJECAO
 
 ### Prompt Template
 
 ```
-"Discordo do seu método. {objeção_comum_ao_expert}.
-O que você tem a dizer?"
+"Discordo do seu metodo. {objecao_comum_ao_expert}.
+O que voce tem a dizer?"
 ```
 
-### Critérios de Avaliação
+### Criterios de Avaliacao
 
 ```yaml
 test_3_criteria:
   objection_handling:
-    - question: "Reconhece a objeção?"
-      check: "Não ignora, endereça diretamente"
-      status: "✅|❌"
+    - question: "Reconhece a objecao?"
+      check: "Nao ignora, endereca diretamente"
+      status: "V|X"
 
     - question: "Usa objection_response documentada?"
       check: "Resposta alinha com objection_algorithms do DNA"
-      status: "✅|❌"
+      status: "V|X"
 
   immune_system:
-    - question: "Mantém convicção?"
-      check: "Não capitula, defende método"
-      status: "✅|❌"
+    - question: "Mantem conviccao?"
+      check: "Nao capitula, defende metodo"
+      status: "V|X"
 
     - question: "Responde com estilo do expert?"
-      check: "Tom, vocabulário, atitude consistentes"
-      status: "✅|❌"
+      check: "Tom, vocabulario, atitude consistentes"
+      status: "V|X"
 
   authenticity:
     - question: "Parece resposta real do expert?"
-      check: "Avaliação subjetiva de autenticidade"
-      status: "✅|❌"
+      check: "Avaliacao subjetiva de autenticidade"
+      status: "V|X"
 
-  pass_criteria: "4/5 checks ✅"
+  pass_criteria: "4/5 checks V"
 ```
 
 ### Exemplo: Eugene Schwartz
 
 ```yaml
 prompt: |
-  Discordo do seu método. Levels of awareness é muito complicado.
-  Por que não simplesmente escrever copy direto?
+  Discordo do seu metodo. Levels of awareness e muito complicado.
+  Por que nao simplesmente escrever copy direto?
 
 expected_signals:
   response_pattern:
-    - Não se ofende
+    - Nao se ofende
     - Explica por que awareness importa
     - Usa exemplo concreto
-  conviction: "Defende metodologia sem arrogância"
+  conviction: "Defende metodologia sem arrogancia"
   style: "Professoral, paciente, confiante"
 
 red_flags:
-  - Concorda que é complicado
+  - Concorda que e complicado
   - Abandona o framework
-  - Responde de forma genérica
+  - Responde de forma generica
 ```
 
 ---
@@ -268,26 +265,26 @@ smoke_test_result:
     # FAIL = qualquer test falha
 
   action_if_fail:
-    - "Revisar seção que falhou no DNA"
+    - "Revisar secao que falhou no DNA"
     - "Adicionar mais exemplos no agent.md"
     - "Verificar se fontes eram suficientes"
-    - "Re-rodar smoke test após ajustes"
+    - "Re-rodar smoke test apos ajustes"
 ```
 
 ---
 
-## INTEGRAÇÃO NO WORKFLOW
+## INTEGRACAO NO WORKFLOW
 
 ```yaml
 when_to_run:
   - after: "create-agent.md completa"
   - before: "considerar agente pronto"
-  - blocking: true  # Não prosseguir se falhar
+  - blocking: true  # Nao prosseguir se falhar
 
 automation:
   test_1: "Pode ser automatizado (contagem de palavras)"
-  test_2: "Semi-automático (verificar estrutura)"
-  test_3: "Requer avaliação humana (autenticidade)"
+  test_2: "Semi-automatico (verificar estrutura)"
+  test_3: "Requer avaliacao humana (autenticidade)"
 ```
 
 ---
@@ -295,13 +292,13 @@ automation:
 ## QUICK REFERENCE
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ TEST │ O QUE TESTA          │ PROMPT BASE                    │ ESPERA      │
-├──────┼──────────────────────┼────────────────────────────────┼─────────────┤
-│  1   │ Vocabulário/Tom      │ "Explique {framework}..."      │ Power words │
-│  2   │ Heurísticas/Decisão  │ "Devo fazer A ou B?"           │ Framework   │
-│  3   │ Convicção/Defesa     │ "Discordo porque..."           │ Autenticidade│
-└──────┴──────────────────────┴────────────────────────────────┴─────────────┘
++------+----------------------+--------------------------------+-------------+
+| TEST | O QUE TESTA          | PROMPT BASE                    | ESPERA      |
++------+----------------------+--------------------------------+-------------+
+|  1   | Vocabulario/Tom      | "Explique {framework}..."      | Power words |
+|  2   | Heuristicas/Decisao  | "Devo fazer A ou B?"           | Framework   |
+|  3   | Conviccao/Defesa     | "Discordo porque..."           | Autenticidade|
++------+----------------------+--------------------------------+-------------+
 
 PASS = 3/3 tests passam (4/5 checks cada)
 FAIL = Re-trabalhar DNA ou agent.md
@@ -310,4 +307,4 @@ FAIL = Re-trabalhar DNA ou agent.md
 ---
 
 **Squad Architect | Smoke Test v1.0**
-*"O teste não é se você extraiu o DNA. É se o agente SE COMPORTA como o expert."*
+*"O teste nao e se voce extraiu o DNA. E se o agente SE COMPORTA como o expert."*

@@ -1,20 +1,11 @@
 # Task: Create Squad Agent
 
 **Task ID:** create-agent
-**Version:** 2.2
+**Version:** 2.0
 **Purpose:** Create a single domain-specific agent through research, elicitation, and validation
 **Orchestrator:** @squad-architect
-**DNA Specialist:** @oalanicolas
 **Mode:** Research-first (never create without research)
 **Quality Standard:** AIOS Level (300+ lines, voice_dna, output_examples)
-
-> **Nota:** Este documento usa copywriting como exemplo ilustrativo. Substitua pelo seu domínio e experts relevantes.
-
-**Specialists:**
-- **@oalanicolas** → Invoke for DNA extraction (Voice DNA, Thinking DNA, source curation)
-  - Use `*extract-dna {specialist}` for complete DNA Mental™ extraction
-  - Use `*assess-sources` to classify sources as ouro vs bronze
-  - Consult when agent voice feels generic or inauthentic
 
 **Frameworks Used:**
 - `data/tier-system-framework.md` → Agent tier classification (Phase 2)
@@ -135,15 +126,14 @@ classify_agent_type:
 
 **Output (PHASE 0):**
 ```yaml
-# Example output - values will vary based on your squad
 phase_0_output:
-  pack_name: "{squad-name}"
-  pack_path: "squads/{squad-name}/"
+  pack_name: "copy"
+  pack_path: "squads/{your-squad}/"
   agent_type: "specialist_based"
   specialist:
-    slug: "{expert_slug}"
-    name: "{Expert Name}"
-  agent_id: "{expert-slug}"  # derived
+    slug: "gary_halbert"
+    name: "Gary Halbert"
+  agent_id: "expert-agent"  # derived
 ```
 
 ---
@@ -616,11 +606,10 @@ save_agent:
 
 **Output (PHASE 4):**
 ```yaml
-# Example output - values will vary based on your squad
 phase_4_output:
   quality_score: 8.3/10
   blocking_requirements: "ALL PASS"
-  agent_file: "squads/{squad-name}/agents/{agent-name}.md"
+  agent_file: "squads/{your-squad}/agents/expert-agent.md"
   lines: 750
   status: "PASS"
 ```
@@ -636,13 +625,12 @@ phase_4_output:
 
 **Actions:**
 ```yaml
-# Example output - values will vary based on your squad
 present_summary:
   agent_created:
-    name: "{Expert Name}"
-    id: "{agent-name}"
+    name: "Gary Halbert"
+    id: "expert-agent"
     tier: 1
-    file: "squads/{squad-name}/agents/{agent-name}.md"
+    file: "squads/{your-squad}/agents/expert-agent.md"
     lines: 750
 
   quality:
@@ -651,8 +639,8 @@ present_summary:
     voice_dna: "Complete"
 
   activation:
-    command: "@{squad-name}:{agent-name}"  # e.g., "@{squad-name}:{agent-name}"
-    example: "{example task for this agent}"
+    command: "@copy:expert-agent"
+    example: "Write a sales page for a fitness program"
 
   commands:
     - "*help - Show available commands"

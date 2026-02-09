@@ -5,8 +5,6 @@
 **Purpose:** Scan all squads in the ecosystem and update squad-registry.yaml
 **Orchestrator:** @squad-architect
 **Mode:** Hybrid (Script + LLM)
-**Execution Type:** `Hybrid` (Worker script + Agent enrichment)
-**Worker Script:** `scripts/refresh-registry.py`
 
 **Architecture:**
 ```
@@ -121,19 +119,19 @@ python3 squads/squad-creator/scripts/refresh-registry.py --output json --registr
     "total_squads": 22
   },
   "squads": {
-    "{squad-name}": {  // Example: "copy", "legal", "data"
-      "path": "squads/{squad-name}/",
+    "copy": {
+      "path": "squads/{your-squad}/",
       "version": "1.0.0",
-      "description": "Squad description...",
+      "description": "Copywriting squad...",
       "counts": {
-        "agents": N,
-        "tasks": N,
-        "workflows": N,
-        "templates": N,
-        "checklists": N,
-        "data_files": N
+        "agents": 22,
+        "tasks": 58,
+        "workflows": 3,
+        "templates": 10,
+        "checklists": 5,
+        "data_files": 2
       },
-      "agent_names": ["{agent-1}", "{agent-2}", ...],  // Your agent names
+      "agent_names": ["gary-halbert", "eugene-schwartz", ...],
       "domain": "_TO_BE_INFERRED_",  // LLM will fill
       "keywords": [],                 // LLM will fill
       "highlights": [],               // LLM will fill

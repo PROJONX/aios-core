@@ -633,7 +633,7 @@ Good error message structure:
 
 Standard syntax: `@agent-id`
 ```bash
-@{squad-name}:{agent-name}  # e.g., @legal-contract-specialist
+@legal-contract-specialist
 ```
 
 **Command Execution**

@@ -12,11 +12,13 @@ const path = require('path');
 const fse = require('fs-extra');
 const {
   getLanguageQuestion,
+  getUserProfileQuestion,
   getProjectTypeQuestion,
   getIDEQuestions,
   getTechPresetQuestion,
 } = require('./questions');
-const { setLanguage } = require('./i18n');
+const { setLanguage, t } = require('./i18n');
+const yaml = require('js-yaml');
 const { showWelcome, showCompletion, showCancellation } = require('./feedback');
 const { generateIDEConfigs, showSuccessSummary } = require('./ide-config-generator');
 const {
@@ -70,6 +72,113 @@ const {
 // **Comandos disponíveis:** Use \`*help\` para ver todos os comandos do agente.
 // `;
 // }
+
+/**
+ * Check for existing user_profile in core-config.yaml (Story 10.2 - Idempotency)
+ * Returns the existing profile if found, null otherwise
+ *
+ * @param {string} targetDir - Target directory to check
+ * @returns {Promise<string|null>} Existing user profile or null
+ */
+async function getExistingUserProfile(targetDir = process.cwd()) {
+  const coreConfigPath = path.join(targetDir, '.aios-core', 'core-config.yaml');
+
+  try {
+    if (await fse.pathExists(coreConfigPath)) {
+      const content = await fse.readFile(coreConfigPath, 'utf8');
+      const config = yaml.load(content);
+
+      if (config && config.user_profile) {
+        // Validate the value
+        const validProfiles = ['bob', 'advanced'];
+        const normalizedProfile = String(config.user_profile).toLowerCase().trim();
+
+        if (validProfiles.includes(normalizedProfile)) {
+          return normalizedProfile;
+        }
+      }
+    }
+  } catch {
+    // Config doesn't exist or is invalid - will ask for profile
+  }
+
+  return null;
+}
+
+/**
+ * Map wizard language code to Claude Code settings.json language name (Story ACT-12)
+ * Claude Code uses full language names, not ISO codes.
+ */
+const LANGUAGE_MAP = {
+  en: 'english',
+  pt: 'portuguese',
+  es: 'spanish',
+};
+
+/**
+ * Write language preference to Claude Code's native settings.json (Story ACT-12)
+ * Replaces the old approach of storing language in core-config.yaml.
+ * Claude Code v2.1.0+ natively supports a `language` field in settings.json
+ * that is automatically injected into the system prompt.
+ *
+ * @param {string} language - Language code from wizard (en|pt|es)
+ * @param {string} [projectDir] - Project directory (default: process.cwd())
+ * @returns {Promise<boolean>} true if written successfully
+ */
+async function writeClaudeSettings(language, projectDir = process.cwd()) {
+  const claudeDir = path.join(projectDir, '.claude');
+  const settingsPath = path.join(claudeDir, 'settings.json');
+
+  try {
+    await fse.ensureDir(claudeDir);
+
+    let settings = {};
+    if (await fse.pathExists(settingsPath)) {
+      const content = await fse.readFile(settingsPath, 'utf8');
+      settings = JSON.parse(content);
+    }
+
+    const claudeLanguage = LANGUAGE_MAP[language] || language;
+    settings.language = claudeLanguage;
+
+    await fse.writeFile(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf8');
+    return true;
+  } catch {
+    // Non-blocking: language is a preference, not critical
+    return false;
+  }
+}
+
+/**
+ * Get existing language from Claude Code settings.json (Story ACT-12 - Idempotency)
+ * Returns the existing language code if found, null otherwise.
+ *
+ * @param {string} [projectDir] - Project directory to check
+ * @returns {Promise<string|null>} Existing language code or null
+ */
+async function getExistingLanguage(projectDir = process.cwd()) {
+  const settingsPath = path.join(projectDir, '.claude', 'settings.json');
+
+  try {
+    if (await fse.pathExists(settingsPath)) {
+      const content = await fse.readFile(settingsPath, 'utf8');
+      const settings = JSON.parse(content);
+
+      if (settings && settings.language) {
+        // Reverse map: Claude Code language name → wizard code
+        const reverseMap = Object.fromEntries(
+          Object.entries(LANGUAGE_MAP).map(([k, v]) => [v, k]),
+        );
+        const langValue = String(settings.language).toLowerCase().trim();
+        return reverseMap[langValue] || null;
+      }
+    }
+  } catch {
+    // Settings don't exist or invalid JSON
+  }
+
+  return null;
+}
 
 /**
  * Handle Ctrl+C gracefully
@@ -130,43 +239,91 @@ function setupCancellationHandler() {
  * const answers = await runWizard();
  * console.log(answers.projectType); // 'greenfield' or 'brownfield'
  */
-async function runWizard() {
+async function runWizard(options = {}) {
   try {
     // Setup graceful cancellation
     setupCancellationHandler();
 
     // Show welcome message with AIOS branding
-    showWelcome();
+    if (!options.quiet) {
+      showWelcome();
+    }
 
-    // Phase 1: Language selection (must be first to apply i18n)
-    const languageAnswer = await inquirer.prompt([getLanguageQuestion()]);
-    setLanguage(languageAnswer.language);
+    // Start i18n with default or detected language
+    setLanguage(options.language || 'en');
 
-    // Phase 2: Build remaining questions with i18n applied
-    const remainingQuestions = [
-      getProjectTypeQuestion(),
-      ...getIDEQuestions(),
-      ...getTechPresetQuestion(),
-    ];
+    let answers = {};
 
-    // Performance tracking (AC: < 100ms per question)
-    const startTime = Date.now();
+    if (options.quiet) {
+      // Quiet mode: Skip all prompts, use defaults
+      // Story 10.2: Check for existing user_profile (idempotency)
+      // Story ACT-12: Language delegated to Claude Code settings.json
+      const existingProfile = await getExistingUserProfile();
+      const existingLang = await getExistingLanguage();
+      answers = {
+        language: options.language || existingLang || 'en',
+        userProfile: options.userProfile || existingProfile || 'advanced', // Story 10.2
+        projectType: options.projectType || 'brownfield', // Default to brownfield for safety
+        selectedIDEs: options.ide ? [options.ide] : [],   // Support single IDE flag if added later
+        selectedTechPreset: 'none',
+        ...options, // Merge any other options
+      };
+    } else {
+      // Interactive mode
+      // Phase 1: Language selection (must be first to apply i18n)
+      // Story ACT-12: Check idempotency via Claude Code settings.json
+      let languageAnswer;
+      const existingLanguage = await getExistingLanguage();
 
-    // Run wizard with remaining questions
-    const remainingAnswers = await inquirer.prompt(remainingQuestions);
+      if (existingLanguage) {
+        // Idempotent: Use existing language, don't re-ask
+        console.log(`\n✓ ${t('languageSkipped') || 'Language already configured'}: ${existingLanguage}\n`);
+        languageAnswer = { language: existingLanguage };
+      } else {
+        languageAnswer = await inquirer.prompt([getLanguageQuestion()]);
+      }
+      setLanguage(languageAnswer.language);
 
-    // Merge all answers
-    const answers = { ...languageAnswer, ...remainingAnswers };
+      // Phase 1.5: User Profile selection (Story 10.2 - Epic 10)
+      // Check for idempotency - if user_profile already exists, skip question
+      let userProfileAnswer = {};
+      const existingProfile = await getExistingUserProfile();
 
-    // Log performance metrics
-    const duration = Date.now() - startTime;
-    const totalQuestions = remainingQuestions.length + 1; // +1 for language question
-    const avgTimePerQuestion = totalQuestions > 0 ? duration / totalQuestions : 0;
+      if (existingProfile) {
+        // Idempotent: Use existing profile, don't re-ask
+        console.log(`\n✓ ${t('userProfileSkipped')}: ${existingProfile}\n`);
+        userProfileAnswer = { userProfile: existingProfile };
+      } else {
+        // New installation: Ask for user profile
+        userProfileAnswer = await inquirer.prompt([getUserProfileQuestion()]);
+      }
 
-    if (avgTimePerQuestion > 100) {
-      console.warn(
-        `Warning: Average question response time (${avgTimePerQuestion.toFixed(0)}ms) exceeds 100ms target`,
-      );
+      // Phase 2: Build remaining questions with i18n applied
+      const remainingQuestions = [
+        getProjectTypeQuestion(),
+        ...getIDEQuestions(),
+        ...getTechPresetQuestion(),
+      ];
+
+      // Performance tracking (AC: < 100ms per question)
+      const startTime = Date.now();
+
+      // Run wizard with remaining questions
+      const remainingAnswers = await inquirer.prompt(remainingQuestions);
+
+      // Merge all answers (including user profile from Story 10.2)
+      answers = { ...languageAnswer, ...userProfileAnswer, ...remainingAnswers };
+
+      // Log performance metrics
+      const duration = Date.now() - startTime;
+      const totalQuestions = remainingQuestions.length + 2; // +1 for language, +1 for user profile
+      const avgTimePerQuestion = totalQuestions > 0 ? duration / totalQuestions : 0;
+
+      if (avgTimePerQuestion > 100) {
+        console.warn(
+          `Warning: Average question response time (${avgTimePerQuestion.toFixed(0)}ms) exceeds 100ms target`,
+        );
+      }
     }
 
     // Story 1.4: Install AIOS core framework (agents, tasks, workflows, templates)
@@ -351,7 +508,13 @@ async function runWizard() {
     // Story 1.4: Generate IDE configs if IDEs were selected
     let ideConfigResult = null;
     if (answers.selectedIDEs && answers.selectedIDEs.length > 0) {
-      ideConfigResult = await generateIDEConfigs(answers.selectedIDEs, answers);
+      // Pass merge options from CLI to IDE config generator (Story 9.4)
+      const ideOptions = {
+        ...answers,
+        forceMerge: options.forceMerge,
+        noMerge: options.noMerge,
+      };
+      ideConfigResult = await generateIDEConfigs(answers.selectedIDEs, ideOptions);
 
       if (ideConfigResult.success) {
         showSuccessSummary(ideConfigResult);
@@ -432,8 +595,21 @@ async function runWizard() {
         projectType: answers.projectType || 'greenfield',
         selectedIDEs: answers.selectedIDEs || [],
         mcpServers: answers.mcpServers || [],
-        skipPrompts: false, // Interactive mode
+        userProfile: answers.userProfile || 'advanced', // Story 10.2: User Profile
+        skipPrompts: options.quiet || false, // Skip prompts in quiet mode
+        forceMerge: options.forceMerge, // Story 9.4: Smart Merge support
+        noMerge: options.noMerge, // Story 9.4: Smart Merge support
       });
+
+      // Story ACT-12: Write language to Claude Code settings.json
+      if (answers.language) {
+        const langWritten = await writeClaudeSettings(answers.language);
+        if (langWritten) {
+          console.log('  - Language written to .claude/settings.json');
+        } else {
+          console.warn('  - Failed to write language to .claude/settings.json');
+        }
+      }
 
       if (envResult.envCreated && envResult.coreConfigCreated) {
         console.log('\n✅ Environment configuration complete!');
@@ -704,4 +880,10 @@ async function runWizard() {
 
 module.exports = {
   runWizard,
+  // ACT-12: Exported for testing
+  _testing: {
+    writeClaudeSettings,
+    getExistingLanguage,
+    LANGUAGE_MAP,
+  },
 };

@@ -6,9 +6,7 @@ atomic_layer: task
 status: active
 sprint: 9
 story: SQC-12
-version: 1.1.0
-execution_type: Worker
-worker_script: scripts/sync-ide-command.py
+version: 1.0.0
 Entrada: |
   - type: agent | task | workflow | squad (obrigatório)
   - name: Nome do componente para sincronizar (obrigatório)
@@ -35,57 +33,57 @@ Sincroniza agents, tasks, workflows ou squads inteiros para todas as configuraç
 ## Uso
 
 ```bash
-# Sincronizar um agent específico (example)
-*command agent {agent-name}
+# Sincronizar um agent específico
+*command agent legal-chief
 
 # Sincronizar uma task
-*command task {task-name}
+*command task revisar-contrato
 
 # Sincronizar um workflow
-*command workflow {workflow-name}
+*command workflow legal-workflow
 
 # Sincronizar squad inteiro (todos os componentes)
-*command squad {squad-name}
+*command squad legal
 
 # Preview sem executar
-*command agent {agent-name} --dry-run
+*command agent legal-chief --dry-run
 
 # Forçar sobrescrita
-*command squad {squad-name} --force
+*command squad legal --force
 ```
 
 ## Output Exemplo
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- *command squad {squad-name}
+ *command squad legal
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📋 Loading sync configuration...
    Active IDEs: claude, cursor
-   Pack alias: {squad-name} → {SquadName}
+   Pack alias: legal → Legal
 
-📦 Syncing squad: {squad-name}
+📦 Syncing squad: {your-squad}
 
 Step 1: Locating source files
-   ✓ squads/{squad-name}/config.yaml
-   ✓ Found N agents
-   ✓ Found N tasks
-   ✓ Found N checklists
-   ✓ Found N data file
+   ✓ squads/{your-squad}/config.yaml
+   ✓ Found 3 agents
+   ✓ Found 5 tasks
+   ✓ Found 2 checklists
+   ✓ Found 1 data file
 
 Step 2: Syncing to Claude Code
-   ✓ .claude/commands/{SquadName}/agents/{agent-1}.md
-   ✓ .claude/commands/{SquadName}/agents/{agent-2}.md
-   ✓ .claude/commands/{SquadName}/agents/{agent-3}.md
-   ... (N agents)
-   ✓ .claude/commands/{SquadName}/tasks/{task-name}.md
-   ... (N tasks, N checklists, N data)
+   ✓ .claude/commands/MySquad/agents/main-agent.md
+   ✓ .claude/commands/MySquad/agents/assistant.md
+   ✓ .claude/commands/MySquad/agents/reviewer.md
+   ✓ .claude/commands/MySquad/tasks/main-task.md
+   ✓ .claude/commands/MySquad/tasks/review-task.md
+   ... (4 tasks, 6 checklists, 1 data)
 
 Step 3: Syncing to Cursor
-   ✓ .cursor/rules/{agent-1}.mdc
-   ✓ .cursor/rules/{agent-2}.mdc
-   ... (N agents converted to MDC)
+   ✓ .cursor/rules/legal-chief.mdc
+   ✓ .cursor/rules/brad-feld.mdc
+   ... (8 agents converted to MDC)
 
 Step 4: Validation
    ✓ All files validated
@@ -101,8 +99,8 @@ Summary:
   IDEs synced:    2
 
 🚀 Commands available:
-   /{Squad}:agents:{agent-name} (Claude Code)
-   @{agent-name} (Cursor rule)
+   /Legal:agents:legal-chief (Claude Code)
+   @legal-chief (Cursor rule)
 ```
 
 ## Configuração
@@ -119,11 +117,12 @@ active_ides:
   # - windsurf  # .windsurf/ (descomentar para ativar)
   # - gemini    # .gemini/
 
-# Mapeamento de diretório → prefixo de comando (examples)
+# Mapeamento de diretório → prefixo de comando
 pack_aliases:
-  {squad-name-1}: {SquadName1}  # Example: legal: Legal
-  {squad-name-2}: {SquadName2}  # Example: copy: Copy
-  # Add your squads here
+  legal: Legal
+  copy: Copy
+  hr: HR
+  data: Data
 
 # Mapeamentos de sincronização
 sync_mappings:
@@ -145,8 +144,9 @@ O `pack_aliases` mapeia o nome do diretório do squad para o prefixo usado nos c
 
 | Diretório | Alias | Comando Claude |
 |-----------|-------|----------------|
-| `squads/{squad-name}/` | `{SquadName}` | `/{SquadName}:agents:{agent-name}` |
-<!-- Example: squads/legal/ | Legal | /Legal:agents:legal-chief -->
+| `squads/{your-squad}/` | `MySquad` | `/MySquad:agents:main-agent` |
+| `squads/another-squad/` | `AnotherSquad` | `/AnotherSquad:agents:chief` |
+| `squads/squad-creator/` | `SquadCreator` | `/SquadCreator:agents:squad-architect` |
 
 ## Workflow Interno
 
@@ -189,7 +189,7 @@ Cursor usa formato MDC com frontmatter YAML:
 
 **Entrada (MD):**
 ```markdown
-# {agent-name}
+# legal-chief
 
 ACTIVATION-NOTICE: This file contains...
 
@@ -200,12 +200,12 @@ ACTIVATION-NOTICE: This file contains...
 **Saída (MDC):**
 ```markdown
 ---
-description: {Agent description from config}
+description: Diretor Jurídico & Orquestrador de Especialistas
 globs: []
 alwaysApply: false
 ---
 
-# {agent-name}
+# legal-chief
 
 ACTIVATION-NOTICE: This file contains...
 ...

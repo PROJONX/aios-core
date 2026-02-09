@@ -1,0 +1,115 @@
+name: zenlyric-awakening-journey
+version: 1.0.0
+short-title: ZenLyric Awakening Journey
+description: >-
+  Squad para desenvolver e lancar o MVP do ZenLyric - ecossistema de transformacao
+  que une musica autoral, jornada de 8 fases de consciencia, performance audiovisual
+  e The Frequency Alignment Theory. 10 agentes especializados para entregar MVP em 90 dias.
+
+  Diferencial: Arte e musica como VEICULO PRINCIPAL de transformacao.
+  Target: Mercado global em ingles.
+  Budget: Bootstrapped com maximo uso de IA.
+
+author: ZenLyric Creator
+slashPrefix: zenlyric
+
+# Mission
+mission: |
+  Desenvolver e lancar o MVP do ZenLyric - um ecossistema de transformacao que une
+  musica autoral, jornada de 8 fases de consciencia, performance audiovisual e
+  teoria proprietaria (The Frequency Alignment Theory), inspirado no modelo da
+  Alianca Divergente mas com diferencial artistico-musical-visual para mercado global.
+
+# Deliverables MVP (90 dias)
+deliverables:
+  - Modulo 1 completo (The Awakening) - video, audio, exercicios, PDF
+  - Awakening Protocol (primeiro dos 8 Resonance Protocols)
+  - Musica "The First Ray" - versoes studio, instrumental, extended
+  - Portal web com design glassmorphism futurista (The Nexus dashboard)
+  - Pagina de vendas no Systeme.io
+  - Estrategia de lancamento e funil de conversao
+  - Identidade visual completa + nome artistico do criador
+  - The Awakening Experience (evento gratuito 3 dias)
+
+# Design System
+design_system:
+  aesthetic: Glassmorphism + Deep Space + Sacred Geometry
+  colors:
+    deep_space_blue: "#0a0f1a"
+    alchemical_gold: "#D4AF37"
+    neon_cyan: "#00ffff"
+  fonts:
+    headers: Rajdhani
+    body: Montserrat
+    code: JetBrains Mono
+  ux:
+    - Navegacao lateral minimalista
+    - Cards interativos com glow effects
+  stack:
+    - HTML5
+    - Tailwind CSS
+    - JavaScript Vanilla
+    - Lucide Icons
+
+# Context
+context:
+  creator: Brasileiro, trabalha em banco, executa projeto noturno/fins de semana
+  budget: Baixo (bootstrapped), maximo uso de IA e automacao
+  timeline: 90 dias (3 meses)
+  inspiration:
+    - Alianca Divergente (Elton Euler)
+    - Pink Floyd
+    - Joe Dispenza
+  language: English (100% dos materiais)
+
+# Success Metrics
+success_metrics:
+  resonators: 100-300 nos primeiros 3 meses
+  revenue: $10k-30k no trimestre
+  nps: "> 50"
+  completion_rate_module_1: "> 60%"
+  weekly_engagement: "> 40% membros ativos"
+  refund_rate: "< 5%"
+
+# Squad Tiers
+tiers:
+  orchestrator:
+    - launch-orchestrator
+  tier_0:
+    - strategic-architect
+  tier_1:
+    - content-alchemist
+    - sonic-architect
+    - visual-mystic
+    - code-wizard
+  tier_2:
+    - automation-engineer
+    - copy-converter
+    - community-architect
+  tier_3:
+    - naming-specialist
+
+# Collaboration Protocol
+collaboration:
+  weekly_meeting: Reuniao semanal de alinhamento (todos os agentes)
+  daily_updates: Async via Notion
+  shared_workspace: Google Drive + Notion
+  communication: Slack ou Discord
+  final_decisions: Aprovacao do criador
+  documentation: Tudo registrado no Notion
+
+# Quality Standards
+quality:
+  - Todo output deve ser nivel internacional (ingles nativo)
+  - Design deve competir com produtos premium ($1k+)
+  - Conteudo deve ser transformacional (nao so informacional)
+  - Codigo deve ser limpo, comentado, escalavel
+  - Musica deve ser profissional (nao amadora)
+  - Copy deve converter (testar A/B quando possivel)
+
+# Activation settings
+settings:
+  activation:
+    show_ecosystem_report: true
+    show_greeting: true
+    show_quick_commands: true
