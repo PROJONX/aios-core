@@ -1,3 +1,28 @@
+---
+name: enhance-workflow
+description: |
+  Multi-agent pipeline for project enhancement with determinism analysis,
+  dynamic domain-based roundtables, and QA validation. Executes: Discovery,
+  Research, Roundtable, Epic Creation, QA Validation.
+model: sonnet
+allowed-tools:
+  - Read
+  - Write
+  - Grep
+  - Glob
+  - Task
+  - Edit
+  - Bash
+  - WebSearch
+  - WebFetch
+---
+
+
+
+
+
+
+
 # Enhance Workflow v2.0 - Multi-Agent Orchestration
 
 Pipeline de enhancement com análise de determinismo, roundtable dinâmico por domínio, e validação QA.
