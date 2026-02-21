@@ -45,13 +45,13 @@ from typing import Dict, List, Any, Optional, Tuple
 
 DEFAULT_CONFIG = {
     "active_ides": ["claude"],
-    "pack_aliases": {},
+    "squad_aliases": {},
     "sync_mappings": {
         "squad_agents": {
             "source": "squads/*/agents/",
             "destinations": {
                 "claude": {
-                    "path": ".claude/commands/{pack}/agents/",
+                    "path": ".claude/agents/{squad_alias}/agents/",
                     "format": "md"
                 },
                 "cursor": {
@@ -254,9 +254,9 @@ alwaysApply: false
     return frontmatter + content
 
 
-def get_pack_alias(config: Dict, squad_name: str) -> str:
-    """Get pack alias for a squad"""
-    aliases = config.get("pack_aliases", {})
+def get_squad_alias(config: Dict, squad_name: str) -> str:
+    """Get squad alias for a squad (supports legacy pack_aliases)."""
+    aliases = config.get("squad_aliases") or config.get("pack_aliases", {})
     if squad_name in aliases:
         return aliases[squad_name]
     # Default: capitalize first letter of each word
@@ -270,7 +270,7 @@ def get_pack_alias(config: Dict, squad_name: str) -> str:
 def get_destination_path(
     project_root: Path,
     ide: str,
-    pack_alias: str,
+    squad_alias: str,
     component_type: str,
     filename: str,
     config: Dict
@@ -287,7 +287,7 @@ def get_destination_path(
             "data": "data"
         }
         dir_name = type_dir_map.get(component_type, component_type + "s")
-        return project_root / ".claude" / "commands" / pack_alias / dir_name / filename
+        return project_root / ".claude" / "commands" / squad_alias / dir_name / filename
 
     elif ide == "cursor":
         # Cursor uses flat .cursor/rules/ with .mdc extension
@@ -295,7 +295,7 @@ def get_destination_path(
         return project_root / ".cursor" / "rules" / f"{name_without_ext}.mdc"
 
     elif ide == "windsurf":
-        return project_root / ".windsurf" / "commands" / pack_alias / filename
+        return project_root / ".windsurf" / "commands" / squad_alias / filename
 
     else:
         raise ValueError(f"Unknown IDE: {ide}")
@@ -366,7 +366,7 @@ def sync_component(
 
     # Determine squad from source path
     squad_name = source.parent.parent.name
-    pack_alias = get_pack_alias(config, squad_name)
+    squad_alias = get_squad_alias(config, squad_name)
 
     # Get active IDEs
     ides = [target_ide] if target_ide else config.get("active_ides", ["claude"])
@@ -374,7 +374,7 @@ def sync_component(
     # Sync to each IDE
     for ide in ides:
         dest = get_destination_path(
-            project_root, ide, pack_alias, component_type, source.name, config
+            project_root, ide, squad_alias, component_type, source.name, config
         )
 
         status, message = sync_file(source, dest, ide, force, dry_run)
@@ -422,8 +422,8 @@ def sync_squad(
         results["error"] = str(e)
         return results
 
-    pack_alias = get_pack_alias(config, squad_name)
-    print(f"\n📦 Syncing squad: {squad_name} → {pack_alias}")
+    squad_alias = get_squad_alias(config, squad_name)
+    print(f"\n📦 Syncing squad: {squad_name} → {squad_alias}")
 
     # Sync each component type
     type_map = {
@@ -500,7 +500,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s agent squad-architect
+  %(prog)s agent squad-chief
   %(prog)s task validate-squad --squad squad-creator
   %(prog)s squad squad-creator
   %(prog)s squad copy --dry-run

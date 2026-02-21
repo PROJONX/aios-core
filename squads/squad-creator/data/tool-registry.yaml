@@ -5,9 +5,9 @@
 # ═══════════════════════════════════════════════════════════════════════════════
 
 version: "2.0"
-last_updated: "2026-02-05"
-updated_by: "squad-architect"
-last_discovery: "2026-02-05 - squad-creator domain"
+last_updated: "2026-02-17"
+updated_by: "squad-chief"
+last_discovery: "2026-02-17 - design domain"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CATEGORIAS DE FERRAMENTAS
@@ -574,12 +574,38 @@ domain_recommendations:
 
   design:
     essential:
-      - desktop-commander  # File operations
-      - playwright  # Screenshots
+      - workspace-design-system-mcp  # Native DS MCP runtime in workspace/domains/design-system/mcp
+      - design-manifest-sync  # scripts/design-system/sync_design_manifest.cjs
+      - design-manifest-drift-check  # scripts/design-system/validate_design_manifest_drift.cjs
+      - design-components-metadata-gen  # scripts/design-system/generate_components_metadata.cjs
+      - design-components-metadata-validate  # scripts/design-system/validate_components_metadata.cjs
+      - design-task-checklist-validate  # scripts/design-system/validate_task_checklist_bindings.cjs
+      - design-mcp-skeleton-validate  # scripts/design-system/validate_mcp_skeleton.cjs
     recommended:
-      - figma-api  # Design files
+      - playwright  # Local visual regression / evidence capture
+      - design-mcp-tools-healthcheck  # scripts/design-system/test_mcp_tools.cjs
     optional:
-      - cloudinary-api  # Image optimization
+      - figma-api  # Design files sync when external integration is required
+      - chromatic  # Managed visual regression SaaS
+      - percy  # Managed visual regression SaaS
+
+  spy:
+    essential:
+      - exa  # Competitive research
+      - etl-ops-process  # Internal routing/orchestration for extraction
+      - etl-cli-youtube-transcript  # Native transcript pipeline
+      - etl-cli-youtube-metadata  # Native metadata pipeline
+      - etl-cli-fetch-page  # Native deterministic page extraction
+    recommended:
+      - youtube-data-api-v3  # Channel/video metadata enrichment
+      - yt-dlp  # Metadata/download fallback
+      - hyperfine  # Deterministic benchmark timing
+      - playwright  # Dynamic pages and screenshot evidence (when ETL is insufficient)
+      - apify-api  # Social extraction fallback
+    optional:
+      - meta-graph-api  # Instagram official integration
+      - instaloader  # Local fallback for IG extraction
+      - youtube-transcript-api  # Programmatic transcript fallback
 
   marketing:
     essential:

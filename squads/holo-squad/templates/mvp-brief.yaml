@@ -1,0 +1,41 @@
+title: MVP Brief
+version: 1.0
+owner: product-vision
+
+summary:
+  problem: "Mover objetos holograficos em videos gravados e lives usando movimentos de maos/objeto."
+  target_user: "Times de video/VFX e P&D que precisam de demo funcional rapido."
+  demo_goal: "Demo que mostra controle de hologramas (2D e 3D) sincronizados com movimentos."
+
+scope:
+  in_scope:
+    - "Videos gravados e lives curtos"
+    - "Tracking de maos e objetos simples"
+    - "Hologramas 2D (graficos) e 3D (objeto)"
+    - "Composicao no proprio video"
+  out_of_scope:
+    - "Reconstrucao 3D completa do ambiente"
+    - "Oclusao perfeita e sombras fisicamente corretas"
+    - "Suporte multi-camera e multi-person"
+
+inputs:
+  video_type: "Gravado e live"
+  hardware_constraints: "Intel Core i5 + GPU dedicada"
+
+pipeline:
+  steps:
+    - input
+    - tracking
+    - mapping
+    - render
+    - output
+
+success_metrics:
+  stability: ">= 95% sem crash em 10 execucoes"
+  accuracy: ">= 80% de tracking estavel em cenas simples"
+  latency: "<= 150 ms (target). Melhor possivel dentro do hardware"
+  visual_quality: ">= 4/5 em avaliacao interna"
+
+risks:
+  - risk: ""
+    mitigation: ""

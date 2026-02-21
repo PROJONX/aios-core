@@ -1,7 +1,11 @@
 ---
 task-id: collect-sources
 name: Collect & Validate Sources for Mind Cloning
-version: 2.2.0
+version: 2.3.0
+execution_type: Hybrid
+model: Sonnet
+model_rationale: "Source curation (ouro vs bronze) requires semantic judgment. Not Haiku-eligible."
+haiku_eligible: false
 note: "Exemplos usam copywriting. Substitua pelo seu domínio."
 estimated-time: 30-60 min
 complexity: medium

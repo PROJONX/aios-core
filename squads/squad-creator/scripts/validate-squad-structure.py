@@ -220,11 +220,13 @@ def validate_structure(squad_path: Path) -> Dict[str, Any]:
             # T1-CFG-003: Required fields
             required = ["name", "version"]
             for field in required:
-                # Check top level or under squad_config/pack
+                # Check top level or under squad_config/squad/pack (legacy)
                 found = False
                 if field in config:
                     found = True
                 elif "squad_config" in config and field in config["squad_config"]:
+                    found = True
+                elif "squad" in config and field in config["squad"]:
                     found = True
                 elif "pack" in config and field in config["pack"]:
                     found = True

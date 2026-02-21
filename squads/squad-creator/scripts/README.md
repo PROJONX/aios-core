@@ -53,7 +53,7 @@ python3 scripts/sync-ide-command.py agent oalanicolas --force
 ```
 
 **Suporta:**
-- Claude Code: `.claude/commands/{pack}/`
+- Claude Code: `.claude/agents/{slashPrefix}/`
 - Cursor: `.cursor/rules/` (converte MD → MDC)
 
 ---

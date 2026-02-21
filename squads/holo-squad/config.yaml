@@ -1,0 +1,67 @@
+name: holo-squad
+version: 0.1.0
+short-title: Holo Squad MVP
+description: >-
+  Squad para criar um MVP que identifica movimentos em um video e manipula
+  hologramas de graficos ou objetos no proprio video. Foco em prototipo
+  convincente com stack agnostica, priorizando rapidez de iteracao.
+
+author: holo-squad
+slashPrefix: holo
+
+mission: |
+  Criar um MVP que detecta movimentos em video, traduz esses movimentos
+  em sinais de controle e renderiza hologramas sincronizados no proprio video,
+  com foco em demonstracao clara e pipeline reproduzivel.
+
+deliverables:
+  - Documento de requisitos do MVP
+  - Pipeline de deteccao de movimentos funcional
+  - Compositor de hologramas integrado ao pipeline
+  - Demo com 2 cenarios (grafico e objeto 3D)
+  - Relatorio de performance e qualidade visual
+
+context:
+  audience: Teams de video, VFX, P&D e produto
+  timeline: 4-6 semanas (MVP)
+  budget: Baixo a moderado, foco em ferramentas open-source
+  language: PT-BR
+
+success_metrics:
+  demo_stability: ">= 95% sem crash em 10 execucoes"
+  motion_tracking_accuracy: ">= 80% em dataset de teste simples"
+  render_latency: "<= 150 ms em videos curtos"
+  visual_quality_score: ">= 4/5 por avaliacao interna"
+
+tiers:
+  orchestrator:
+    - holo-orchestrator
+  tier_0:
+    - product-vision
+  tier_1:
+    - motion-vision-engineer
+    - hologram-compositor
+    - realtime-engineer
+  tier_2:
+    - dataset-annotator
+    - qa-benchmarker
+
+collaboration:
+  weekly_meeting: Reuniao semanal de alinhamento
+  daily_updates: Async em canal dedicado
+  shared_workspace: Notion + Drive
+  communication: Slack ou Discord
+  final_decisions: Product Owner
+  documentation: Tudo registrado em Notion
+
+quality:
+  - MVP deve ser reproduzivel com pipeline documentado
+  - Resultados visuais devem ser convincentes para demo
+  - Codigo deve ser simples e modular
+  - Latencia e estabilidade devem ser medidos
+
+settings:
+  activation:
+    show_ecosystem_report: true
+    show_greeting: true
+    show_quick_commands: true

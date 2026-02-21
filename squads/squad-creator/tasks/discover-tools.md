@@ -1,14 +1,16 @@
 # Task: Discover Tools for Squad
 
 **Task ID:** discover-tools
-**Version:** 1.0
+**Version:** 1.1
+**Execution Type:** Agent
 **Purpose:** Research and discover tools (MCPs, APIs, CLIs, Libraries, GitHub Projects) that can potentialize a squad's deliverables
-**Orchestrator:** @squad-architect
+**Orchestrator:** @squad-chief
 **Mode:** Autonomous with human validation
 **Quality Standard:** AIOS Level (comprehensive research, validated sources)
 
 **Frameworks Used:**
 - `data/tool-registry.yaml` → Known tools and capability mapping
+- `data/internal-infrastructure-library.yaml` → Internal capabilities catalog (mandatory first check)
 - `data/quality-dimensions-framework.md` → Tool quality scoring
 - `data/decision-heuristics-framework.md` → Tool selection logic
 
@@ -16,12 +18,17 @@
 
 ## Overview
 
-This task automatically researches and discovers external tools that can enhance a squad's capabilities, reducing user dependency and maximizing delivered value.
+This task first validates internal infrastructure coverage, then researches only external tools needed to fill real gaps.
 
 **Philosophy:** "A squad should leverage ALL available tools to deliver maximum value with minimum user intervention."
 
 ```
 INPUT (domain + use_cases + existing_capabilities)
+    ↓
+[PHASE -1: INTERNAL INFRASTRUCTURE DISCOVERY]
+    → Load internal tool library
+    → Map internal capability coverage
+    → Define external-only search scope
     ↓
 [PHASE 0: CAPABILITY GAP ANALYSIS]
     → Map required capabilities
@@ -77,11 +84,80 @@ OUTPUT: Tool Discovery Report + Updated tool-registry.yaml
 
 ## Preconditions
 
-- [ ] squad-architect agent is active
+- [ ] squad-chief agent is active
+- [ ] `data/internal-infrastructure-library.yaml` exists and is readable
 - [ ] WebSearch/EXA tool available (for research)
 - [ ] WebFetch tool available (for page analysis)
 - [ ] Write permissions for `data/tool-registry.yaml`
 - [ ] Domain and use cases clearly defined
+
+---
+
+## PHASE -1: INTERNAL INFRASTRUCTURE DISCOVERY (MANDATORY)
+
+**Duration:** 3-8 minutes
+**Checkpoint:** SC_INT_001 (Internal Coverage Gate)
+**Mode:** Autonomous
+
+### Step -1.1: Load Internal Library
+
+**Actions:**
+```yaml
+internal_library_load:
+  file: "data/internal-infrastructure-library.yaml"
+  required: true
+
+  validate_sections:
+    - internal_assets
+    - decision_policy
+    - output_contract
+```
+
+### Step -1.2: Map Internal Coverage
+
+**Actions:**
+```yaml
+internal_coverage_mapping:
+  for_each_use_case:
+    - derive_required_capabilities: true
+      match_against: "internal_assets[].provides[].capability"
+
+  output:
+    covered_by_internal: []
+    partially_covered_by_internal: []
+    not_covered_by_internal: []
+```
+
+### Step -1.3: Define External Search Scope
+
+**Actions:**
+```yaml
+external_scope_definition:
+  rule: "Search external only for not_covered_by_internal OR justified enhancement"
+
+  for_each_capability:
+    if covered_by_internal:
+      external_search: "skip"
+      recommendation_policy: "internal_primary"
+    if partially_covered_by_internal:
+      external_search: "optional"
+      recommendation_policy: "internal_primary + external_fallback"
+    if not_covered_by_internal:
+      external_search: "required"
+      recommendation_policy: "external_primary_allowed"
+```
+
+**Output (PHASE -1):**
+```yaml
+phase_minus_1_output:
+  internal_capabilities_found: 12
+  covered_by_internal: 8
+  partial_internal: 2
+  external_only_gaps: 2
+  external_search_scope:
+    required: ["instagram_official_insights", "dynamic_browser_capture"]
+    optional: ["benchmark_timing"]
+```
 
 ---
 
@@ -134,22 +210,28 @@ capability_mapping:
 **Actions:**
 ```yaml
 coverage_analysis:
-  load: "data/tool-registry.yaml"
+  loads:
+    - "data/internal-infrastructure-library.yaml"
+    - "data/tool-registry.yaml"
 
   for_each_capability:
     - check: "capability_mapping.{capability}"
       find_tools: true
 
       result:
+        covered_internal: ["internal_tool1"]
+        partially_covered_internal: ["internal_tool2"]
         covered: ["tool1", "tool2"]
         partially_covered: ["tool3"]  # Has capability but limited
         not_covered: true/false
 
   output:
     coverage_report:
+      internal_fully_covered: []
+      internal_partially_covered: []
       fully_covered: []
       partially_covered: []
-      gaps: []  # These need tool discovery
+      gaps: []  # Only external-only gaps go to deep external discovery
 ```
 
 ### Step 0.3: Prioritize Gaps
@@ -165,6 +247,11 @@ gap_prioritization:
         user_dependency: 0-10  # How much does gap require user intervention?
 
       priority: (impact * 0.4) + (frequency * 0.3) + (user_dependency * 0.3)
+
+  input_filter:
+    only_include:
+      - "not_covered_by_internal"
+      - "partially_covered_by_internal_with_strong_justification"
 
   output:
     prioritized_gaps:
@@ -196,6 +283,8 @@ phase_0_output:
 **Duration:** 10-15 minutes
 **Checkpoint:** SC_MCP_001 (MCP Discovery Gate)
 **Mode:** Autonomous
+
+**Scope Rule:** Only search capabilities from `external_search_scope.required` plus justified optional enhancements.
 
 ### Step 1.1: Search Official MCP Repositories
 
@@ -309,6 +398,8 @@ phase_1_output:
 **Checkpoint:** SC_API_001 (API Discovery Gate)
 **Mode:** Autonomous
 
+**Scope Rule:** Skip APIs that duplicate internal primary coverage unless they add measurable value.
+
 ### Step 2.1: Search API Directories
 
 **Actions:**
@@ -413,6 +504,8 @@ phase_2_output:
 **Duration:** 5-10 minutes
 **Checkpoint:** None
 **Mode:** Autonomous
+
+**Scope Rule:** Internal CLI wins by default. External CLI enters as fallback/enhancement only.
 
 ### Step 3.1: Search Awesome Lists
 
@@ -625,6 +718,7 @@ phase_5_output:
 ```yaml
 consolidation:
   combine:
+    - phase_minus_1_output  # Internal-first baseline
     - phase_1_output  # MCPs
     - phase_2_output  # APIs
     - phase_3_output  # CLIs
@@ -708,6 +802,10 @@ update_registry:
 
   update_capability_mapping:
     - add new capability → tool mappings
+
+  enforce_internal_first:
+    - "if internal coverage exists => keep internal as primary"
+    - "external tool must be tagged as fallback_or_enhancement with rationale"
 ```
 
 **Checkpoint SC_TDR_001:**
@@ -729,10 +827,11 @@ criteria:
 
 | Output | Location | Description |
 |--------|----------|-------------|
-| Tool Discovery Report | `squads/{pack_name}/docs/tool-discovery-report.md` | Comprehensive research findings |
+| Tool Discovery Report | `squads/{squad_name}/docs/tool-discovery-report.md` | Comprehensive research findings |
+| Internal Coverage Snapshot | `squads/{squad_name}/data/capability-tools.yaml` | Includes internal-first decisions |
 | Updated Registry | `data/tool-registry.yaml` | New tools added to global registry |
-| Integration Plan | `squads/{pack_name}/docs/tool-integration-plan.md` | Prioritized implementation steps |
-| Capability Map | `squads/{pack_name}/data/capability-tools.yaml` | Squad-specific capability → tool mapping |
+| Integration Plan | `squads/{squad_name}/docs/tool-integration-plan.md` | Prioritized implementation steps |
+| Capability Map | `squads/{squad_name}/data/capability-tools.yaml` | Squad-specific capability → tool mapping |
 
 ---
 
@@ -843,6 +942,8 @@ feeds_into:
 ## Validation Criteria
 
 ### Research Quality
+- [ ] Internal library checked before any external search
+- [ ] External search scope derived from internal gaps
 - [ ] All priority gaps researched
 - [ ] At least 3 sources searched per category
 - [ ] Results validated (not just listed)
@@ -933,12 +1034,13 @@ top_recommendations:
 
 | Heuristic ID | Name | Where Applied | Blocking |
 |--------------|------|---------------|----------|
+| SC_INT_001 | Internal Coverage Gate | Phase -1 | Yes |
 | SC_MCP_001 | MCP Discovery Gate | Phase 1 | No |
 | SC_API_001 | API Discovery Gate | Phase 2 | No |
 | SC_TDR_001 | Tool Discovery Report | Phase 6 | Yes |
 
 ---
 
-_Task Version: 1.0_
-_Last Updated: 2026-02-03_
+_Task Version: 1.1_
+_Last Updated: 2026-02-17_
 _Lines: 750+_

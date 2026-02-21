@@ -1,7 +1,7 @@
 # wf-discover-tools.yaml
 # Workflow: Deep Tool Discovery with Parallel Sub-Agents
-# Version: 2.0
-# Last Updated: 2026-02-03
+# Version: 2.1
+# Last Updated: 2026-02-17
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # WORKFLOW METADATA
@@ -10,15 +10,17 @@
 workflow:
   id: wf-discover-tools
   name: "Deep Tool Discovery"
-  version: "2.0"
+  version: "2.1"
   purpose: |
     Orquestrar pesquisa PROFUNDA e PARALELA de ferramentas que potencializam
     os entregáveis de um squad, usando subagentes especializados para cada
     categoria de ferramenta.
-  orchestrator: "@squad-architect"
+  orchestrator: "@squad-chief"
   mode: "autonomous"
 
   philosophy: |
+    "INTERNAL-FIRST: use what AIOS already has before searching outside."
+
     "A squad should leverage ALL available tools to deliver maximum value
     with minimum user intervention."
 
@@ -33,15 +35,16 @@ workflow:
 execution_strategy:
   mode: "parallel_then_synthesize"
   description: |
-    1. PHASE 0: Capability Gap Analysis (sequential, fast)
-    2. PHASE 1: Deep Search (5 subagents in PARALLEL)
+    1. PHASE -1: Internal Infrastructure Discovery (sequential, mandatory)
+    2. PHASE 0: Capability Gap Analysis (sequential, fast)
+    3. PHASE 1: Deep Search (5 subagents in PARALLEL, external-only gaps)
        - MCP Discovery Agent
        - API Discovery Agent
        - CLI Discovery Agent
        - Library Discovery Agent
        - GitHub Project Discovery Agent
-    3. PHASE 2: Synthesis & Scoring (sequential, after all agents complete)
-    4. PHASE 3: Decision Matrix & Integration Plan
+    4. PHASE 2: Synthesis & Scoring (sequential, after all agents complete)
+    5. PHASE 3: Decision Matrix & Integration Plan
 
   parallelization:
     enabled: true
@@ -95,7 +98,8 @@ inputs:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 preconditions:
-  - "squad-architect agent is active"
+  - "squad-chief agent is active"
+  - "data/internal-infrastructure-library.yaml exists"
   - "WebSearch/EXA tool available"
   - "WebFetch tool available"
   - "Task tool available (for spawning subagents)"
@@ -107,6 +111,70 @@ preconditions:
 
 phases:
   # ─────────────────────────────────────────────────────────────────────────────
+  # PHASE -1: INTERNAL INFRASTRUCTURE DISCOVERY (MANDATORY)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - id: phase_minus_1
+    name: "INTERNAL INFRASTRUCTURE DISCOVERY"
+    purpose: "Map internal capabilities first and constrain external search scope"
+    duration: "3-8 minutes"
+    mode: "sequential"
+
+    steps:
+      - id: step_m1_1
+        name: "Load Internal Library"
+        action: "Read data/internal-infrastructure-library.yaml"
+        logic: |
+          load: "data/internal-infrastructure-library.yaml"
+          assert_exists:
+            - internal_assets
+            - decision_policy
+            - output_contract
+
+      - id: step_m1_2
+        name: "Map Internal Coverage"
+        action: "Match required capabilities against internal assets"
+        logic: |
+          for each use_case in inputs.use_cases:
+            derive required_capabilities
+
+          for each capability in required_capabilities:
+            match against internal_assets[].provides[].capability
+
+            classify:
+              - INTERNAL_COVERED
+              - INTERNAL_PARTIAL
+              - INTERNAL_GAP
+
+        output:
+          internal_coverage:
+            covered: []
+            partial: []
+            gaps: []
+
+      - id: step_m1_3
+        name: "Define External-Only Scope"
+        action: "Prepare external search list based on true internal gaps"
+        logic: |
+          external_search_scope.required = internal_coverage.gaps
+          external_search_scope.optional = internal_coverage.partial
+          external_search_scope.excluded = internal_coverage.covered
+
+        output:
+          external_search_scope:
+            required: []
+            optional: []
+            excluded: []
+
+    checkpoint:
+      id: CP_INTERNAL_FIRST
+      name: "Internal Coverage Gate"
+      blocking: true
+      criteria:
+        - internal_library_loaded: true
+        - internal_coverage_mapped: true
+        - external_scope_defined: true
+
+  # ─────────────────────────────────────────────────────────────────────────────
   # PHASE 0: CAPABILITY GAP ANALYSIS
   # ─────────────────────────────────────────────────────────────────────────────
   - id: phase_0
@@ -114,6 +182,7 @@ phases:
     purpose: "Map required capabilities and identify gaps that need tools"
     duration: "5-10 minutes"
     mode: "sequential"
+    depends_on: ["phase_minus_1"]
 
     steps:
       - id: step_0_1
@@ -140,6 +209,7 @@ phases:
         name: "Check Existing Coverage"
         action: "Load tool-registry.yaml and check what's already covered"
         logic: |
+          load: "data/internal-infrastructure-library.yaml"
           load: "data/tool-registry.yaml"
 
           for each capability in capability_requirements:
@@ -149,6 +219,8 @@ phases:
               - known_mcp_coverage
 
             classify:
+              - INTERNAL_COVERED: Internal tool exists and is ready
+              - INTERNAL_PARTIAL: Internal tool exists but with limitations
               - COVERED: Tool exists and is installed
               - KNOWN: Tool exists but not installed
               - GAP: No known tool for this capability
@@ -162,6 +234,7 @@ phases:
       - id: step_0_3
         name: "Prioritize Gaps"
         action: "Score and prioritize capability gaps for deep search"
+        note: "Only prioritize INTERNAL_GAP and justified INTERNAL_PARTIAL capabilities"
         scoring:
           impact:
             weight: 0.35
@@ -199,14 +272,14 @@ phases:
   # ─────────────────────────────────────────────────────────────────────────────
   - id: phase_1
     name: "PARALLEL DEEP SEARCH"
-    purpose: "Launch 5 specialized subagents to search each tool category"
+    purpose: "Launch 5 specialized subagents to search each tool category for external-only gaps"
     duration: "10-20 minutes (parallel)"
     mode: "parallel"
 
     description: |
       This phase launches 5 subagents SIMULTANEOUSLY using the Task tool.
       Each subagent is specialized in searching one category of tools.
-      All agents receive the same inputs (domain, gaps, keywords) but
+      All agents receive the same inputs (domain, external-only gaps, keywords) but
       search in different ecosystems.
 
     parallel_agents:
@@ -859,7 +932,7 @@ phases:
               capability_name:
                 oss_options: [{ tool, tier, cost: "free" }]
                 paid_options: [{ tool, tier, cost: "$X/mo" }]
-                recommendation: "OSS Tier 1 exists" | "Consider paid" | "Only paid available"
+                recommendation: 'OSS Tier 1 exists | Consider paid | Only paid available'
 
       # ─────────────────────────────────────────────────────────────────────────
       # STEP 2.6: RICE SCORING (Relative)
@@ -1150,6 +1223,7 @@ phases:
       - id: step_3_3
         name: "Update Tool Registry"
         action: "Add discovered tools to global registry"
+        policy: "internal-first"
         updates:
           - add_to: "mcp_servers"
             status: "discovered"
@@ -1159,6 +1233,9 @@ phases:
             essential: "{quick_wins}"
             recommended: "{strategic}"
             optional: "{fill_ins}"
+            constraints:
+              - "if capability is internal-covered, keep internal tool as primary"
+              - "external tools for internal-covered capabilities must be fallback/enhancement"
 
           - add_to: "capability_mapping"
             new_mappings: "{gap_to_tool_mappings}"
@@ -1174,9 +1251,11 @@ phases:
         action: "Create comprehensive documentation"
         reports:
           - name: "Tool Discovery Report"
-            location: "squads/{pack_name}/docs/tool-discovery-report.md"
+            location: "squads/{squad_name}/docs/tool-discovery-report.md"
             sections:
               - executive_summary
+              - internal_coverage_summary
+              - external_search_scope
               - capability_gaps_analyzed
               - tools_discovered_by_category
               - decision_matrix_visual
@@ -1184,7 +1263,7 @@ phases:
               - detailed_tool_profiles
 
           - name: "Integration Plan"
-            location: "squads/{pack_name}/docs/tool-integration-plan.md"
+            location: "squads/{squad_name}/docs/tool-integration-plan.md"
             sections:
               - timeline_overview
               - immediate_actions
@@ -1193,7 +1272,7 @@ phases:
               - backlog
 
           - name: "Capability-Tools Mapping"
-            location: "squads/{pack_name}/data/capability-tools.yaml"
+            location: "squads/{squad_name}/data/capability-tools.yaml"
             format: "yaml"
 
     checkpoint:
@@ -1226,6 +1305,8 @@ phases:
           ═══════════════════════════════════════════════════════════════════
 
           DOMAIN: {domain}
+          INTERNAL CAPABILITIES COVERED: {internal_covered_count}
+          EXTERNAL-ONLY GAPS: {external_only_gaps_count}
           CAPABILITY GAPS ANALYZED: {gaps_count}
           TOTAL TOOLS DISCOVERED: {tools_count}
 
@@ -1252,9 +1333,9 @@ phases:
           {quick_wins_table}
 
           REPORTS GENERATED:
-          • squads/{pack_name}/docs/tool-discovery-report.md
-          • squads/{pack_name}/docs/tool-integration-plan.md
-          • squads/{pack_name}/data/capability-tools.yaml
+          • squads/{squad_name}/docs/tool-discovery-report.md
+          • squads/{squad_name}/docs/tool-integration-plan.md
+          • squads/{squad_name}/data/capability-tools.yaml
 
           ═══════════════════════════════════════════════════════════════════
 
@@ -1286,11 +1367,11 @@ phases:
 outputs:
   primary:
     - name: "Tool Discovery Report"
-      location: "squads/{pack_name}/docs/tool-discovery-report.md"
+      location: "squads/{squad_name}/docs/tool-discovery-report.md"
       description: "Comprehensive research findings with all discovered tools"
 
     - name: "Integration Plan"
-      location: "squads/{pack_name}/docs/tool-integration-plan.md"
+      location: "squads/{squad_name}/docs/tool-integration-plan.md"
       description: "Prioritized implementation timeline"
 
     - name: "Decision Matrix"
@@ -1299,7 +1380,7 @@ outputs:
 
   secondary:
     - name: "Capability-Tools Mapping"
-      location: "squads/{pack_name}/data/capability-tools.yaml"
+      location: "squads/{squad_name}/data/capability-tools.yaml"
       description: "Squad-specific capability to tool mapping"
 
     - name: "Updated Tool Registry"
@@ -1311,6 +1392,18 @@ outputs:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 heuristics:
+  - id: SC_INT_001
+    name: "Internal-First Coverage Complete"
+    phase: "phase_minus_1"
+    blocking: true
+    criteria:
+      - internal_library_loaded: true
+      - capabilities_mapped_to_internal: true
+      - external_scope_restricted_to_internal_gaps: true
+    notes:
+      - "External search is forbidden before internal coverage mapping"
+      - "Internal tools remain primary when coverage exists"
+
   - id: SC_TLD_001
     name: "Tool Discovery Complete"
     phase: "phase_3"
@@ -1418,7 +1511,7 @@ metadata:
   version: "2.0"
   created: "2026-02-03"
   updated: "2026-02-03"
-  author: "squad-architect"
+  author: "squad-chief"
   lines: "900+"
   purpose: "Deep parallel tool discovery with RELATIVE TIERS - comparing tools against each other, not absolute values"
   philosophy: "Não existem valores absolutos universais. Um projeto com 30 stars pode ser excelente se for o melhor do nicho."

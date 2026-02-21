@@ -1,7 +1,11 @@
 ---
 task-id: auto-acquire-sources
 name: Automated Source Acquisition
-version: 2.0.0
+version: 2.1.0
+execution_type: Hybrid
+model: Haiku
+model_rationale: "Web search + fetch are deterministic. LLM only formats/summarizes results. QUALIFIED."
+haiku_eligible: true
 estimated-time: 15-30 min
 complexity: low
 
